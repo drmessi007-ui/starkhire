@@ -103,3 +103,15 @@ curl -sS https://starkhire.deosorno.cl/health
 ## 7. Frontend
 
 Set `CONTRACT_ADDRESS` in `frontend/app.js` to the deployed Sepolia address, commit, and publish the `frontend/` directory (GitHub Pages from the workflow in `.github/workflows/pages.yml`, or another static host). The agent CORS origin must match that host origin.
+
+
+## Host notes from the 2026-11-22 read-only survey
+
+A non-mutating login to the machine that serves `agent.deosorno.cl` (`ns1.deosorno.cl`, public A record `136.248.242.17`) found the following. Nothing on the host was changed.
+
+- Nginx does **not** use `/etc/nginx/sites-enabled`. Vhosts are Hestia symlinks in `/etc/nginx/conf.d/domains/`. `agent.deosorno.cl` is already there (`agent.deosorno.cl.conf` and `agent.deosorno.cl.ssl.conf`, under the Hestia user `dns`). The TLS server block proxies to `http://127.0.0.1:18787`. Listen addresses are `10.0.0.183:80` and `10.0.0.183:443`, not `0.0.0.0`.
+- Adding `starkhire.deosorno.cl` should follow that Hestia layout (new domain beside the existing ones, TLS through the host's existing certificate process). Do not overwrite `agent.deosorno.cl` or other domain files. The generic file `nginx-starkhire.deosorno.cl.conf` is only a starting example and must be adapted to those listen addresses and paths.
+- `orbithire-agent.service` was active and listening on `127.0.0.1:18787`. Ports `8787` and `8797` had no TCP listener.
+- Isolated Node.js `v22.23.5` binaries already exist at `/opt/orbithire-runtime/node-v22.23.5/bin/node` and `/opt/node22/bin/node`. Either may be referenced read-only from a new unit; do not replace those trees. System `/usr/bin/node` was `v20.20.2`.
+- The host had about 1 GiB of RAM with swap in use, plus mail, DNS, Hestia, Apache, Nginx, MariaDB, and the OrbitHire agent. A second Node process should only be installed after the owner accepts that memory risk.
+- No `/opt/starkhire-agent`, `/etc/starkhire-agent`, or `starkhire-agent.service` existed at survey time.
