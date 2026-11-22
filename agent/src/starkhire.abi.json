@@ -1,0 +1,404 @@
+[
+  {
+    "type": "impl",
+    "name": "StarkHireImpl",
+    "interface_name": "starkhire::starkhire::IStarkHire"
+  },
+  {
+    "type": "struct",
+    "name": "core::byte_array::ByteArray",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::internal::bounded_int::BoundedInt::<0, 30>"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "starkhire::starkhire::IStarkHire",
+    "items": [
+      {
+        "type": "function",
+        "name": "request_service",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "query",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "submit_report",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "report_hash",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "confirm_report",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "claim_refund",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "cancel",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_fee",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_token",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_agent",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_request_status",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u8"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_request_commitment",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_report_hash",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_refund_after",
+        "inputs": [
+          {
+            "name": "request_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_refund_window_seconds",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_rate_limit_seconds",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "constructor",
+    "name": "constructor",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "agent",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "fee",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "refund_window_seconds",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "rate_limit_seconds",
+        "type": "core::integer::u64"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "starkhire::starkhire::StarkHire::RequestCreated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "request_key",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "query_commitment",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "refund_after",
+        "type": "core::integer::u64",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "starkhire::starkhire::StarkHire::ReportSubmitted",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "request_key",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "report_hash",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "starkhire::starkhire::StarkHire::ReportConfirmed",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "request_key",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "agent",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "starkhire::starkhire::StarkHire::Refunded",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "request_key",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "starkhire::starkhire::StarkHire::Cancelled",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "request_key",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "requester",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "starkhire::starkhire::StarkHire::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "RequestCreated",
+        "type": "starkhire::starkhire::StarkHire::RequestCreated",
+        "kind": "nested"
+      },
+      {
+        "name": "ReportSubmitted",
+        "type": "starkhire::starkhire::StarkHire::ReportSubmitted",
+        "kind": "nested"
+      },
+      {
+        "name": "ReportConfirmed",
+        "type": "starkhire::starkhire::StarkHire::ReportConfirmed",
+        "kind": "nested"
+      },
+      {
+        "name": "Refunded",
+        "type": "starkhire::starkhire::StarkHire::Refunded",
+        "kind": "nested"
+      },
+      {
+        "name": "Cancelled",
+        "type": "starkhire::starkhire::StarkHire::Cancelled",
+        "kind": "nested"
+      }
+    ]
+  }
+]

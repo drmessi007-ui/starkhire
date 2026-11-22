@@ -1,0 +1,40 @@
+[Unit]
+Description=StarkHire Starknet Sepolia off-chain agent
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=starkhire
+Group=starkhire
+WorkingDirectory=/opt/starkhire-agent/app
+Environment=NODE_ENV=production
+# Replace the Node binary after a read-only survey of the host.
+# Do not modify /opt/orbithire-runtime, /opt/orbithire-agent, or the
+# orbithire-agent.service unit. You may point ExecStart at an existing
+# Node 22+ binary without changing those files, or install a separate
+# runtime under /opt/starkhire-runtime.
+Environment=PATH=/opt/starkhire-runtime/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+EnvironmentFile=/etc/starkhire-agent/agent.env
+ExecStart=/opt/starkhire-runtime/bin/node /opt/starkhire-agent/app/src/index.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+UMask=0077
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/opt/starkhire-agent/app/data
+
+[Install]
+WantedBy=multi-user.target

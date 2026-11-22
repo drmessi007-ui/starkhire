@@ -1,0 +1,14 @@
+target/
+.snfoundry_cache/
+.DS_Store
+agent/node_modules/
+agent/data/
+agent/secrets/
+agent/.env
+**/.env
+!.env.example
+!agent/.env.example
+*.pem
+*.key
+id_*
+orbit_jump_*
