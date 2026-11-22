@@ -2,6 +2,10 @@
 Description=StarkHire Starknet Sepolia off-chain agent
 Wants=network-online.target
 After=network-online.target
+# Prevent restart flapping if the unit is started before the contract
+# address and agent key are configured.
+StartLimitIntervalSec=300
+StartLimitBurst=3
 
 [Service]
 Type=simple
@@ -9,18 +13,21 @@ User=starkhire
 Group=starkhire
 WorkingDirectory=/opt/starkhire-agent/app
 Environment=NODE_ENV=production
-# Replace the Node binary after a read-only survey of the host.
-# Do not modify /opt/orbithire-runtime, /opt/orbithire-agent, or the
-# orbithire-agent.service unit. You may point ExecStart at an existing
-# Node 22+ binary without changing those files, or install a separate
-# runtime under /opt/starkhire-runtime.
-Environment=PATH=/opt/starkhire-runtime/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=NODE_OPTIONS=--max-old-space-size=128
+# Use the existing isolated Node 22 binary read-only.
+# Do not modify /opt/node22, /opt/orbithire-runtime, /opt/orbithire-agent,
+# or the orbithire-agent.service unit.
+Environment=PATH=/opt/node22/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 EnvironmentFile=/etc/starkhire-agent/agent.env
-ExecStart=/opt/starkhire-runtime/bin/node /opt/starkhire-agent/app/src/index.js
+ExecStart=/opt/node22/bin/node /opt/starkhire-agent/app/src/index.js
 Restart=on-failure
-RestartSec=5s
+RestartSec=30s
 TimeoutStopSec=30s
 UMask=0077
+Nice=10
+MemoryHigh=160M
+MemoryMax=192M
+CPUQuota=50%
 
 NoNewPrivileges=true
 PrivateTmp=true

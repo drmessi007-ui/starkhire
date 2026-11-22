@@ -1,0 +1,16 @@
+# StarkHire HTTP proxy template for Hestia.
+# Install as /usr/local/hestia/data/templates/web/nginx/starkhire.tpl
+# Do not modify orbithire.tpl or any other existing template.
+server {
+	listen      %ip%:%proxy_port%;
+	server_name %domain_idn% %alias_idn%;
+	error_log   /var/log/%web_system%/domains/%domain%.error.log error;
+
+	include %home%/%user%/conf/web/%domain%/nginx.forcessl.conf*;
+
+	location / {
+		return 301 https://$host$request_uri;
+	}
+
+	include %home%/%user%/conf/web/%domain%/nginx.conf_*;
+}

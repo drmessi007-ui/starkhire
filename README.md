@@ -4,7 +4,7 @@ StarkHire is a Starknet Sepolia prototype: a client pays a fixed ERC-20 fee into
 
 This repository is a new project. It is derived from the author's own [OrbitHire](https://github.com/drmessi007-ui/orbithire) (a NEAR testnet prototype). OrbitHire remains a separate contest entry and is not modified by this work. The off-chain report pipeline in `agent/src/` (report-pipeline, space-data, llm, and related modules) was copied from that project and marked as such. The chain layer, contract, frontend wallet integration, process, port, and deployment unit are new.
 
-**Status (facts at first publication):** the Cairo contract compiles and its `snforge` tests pass locally. The agent unit tests pass locally with a mocked Starknet layer. The contract has **not** been deployed to Sepolia. The agent is **not** installed on the server. The planned API host `https://starkhire.deosorno.cl` did not have a public DNS record when this repository was created. No contract address is published here until the owner deploys one.
+**Status:** the Cairo contract compiles and its `snforge` tests pass locally. The agent unit tests pass locally with a mocked Starknet layer. The contract has **not** been deployed to Sepolia; no contract address is published here until the owner deploys one. The static frontend is published at https://drmessi007-ui.github.io/starkhire/ (`gh-pages` branch). The agent files and systemd unit are installed on the host that already serves `agent.deosorno.cl`; the unit is **enabled but stopped** until the owner fills the Sepolia contract address and agent key. The planned API host `https://starkhire.deosorno.cl` still had no public DNS record at the time of that install, so no Hestia/Nginx vhost or TLS certificate was created.
 
 This prototype is restricted to **Starknet Sepolia**. The agent refuses to start on mainnet. Do not use a mainnet wallet or key with it.
 
@@ -80,7 +80,7 @@ The payment button stays disabled until all of the following are true: a contrac
 
 See [`deploy/INSTALL.md`](deploy/INSTALL.md). Summary: create Sepolia wallets and fund them, deploy the contract, add DNS for `starkhire.deosorno.cl`, then — only with owner approval — install `starkhire-agent.service` and the Nginx site from `deploy/`, without changing any OrbitHire unit, env, or vhost.
 
-GitHub Pages: the workflow file lives at [`deploy/github-pages.yml`](deploy/github-pages.yml) (it does not use repository secrets). The `gh` token used to publish this repository did not have the `workflow` scope, so the file is not under `.github/workflows/` yet. To enable Pages, copy it to `.github/workflows/pages.yml` (or add it in the GitHub UI) and set the Pages source to GitHub Actions. The CORS origin for Pages is `https://drmessi007-ui.github.io` (the origin has no path).
+GitHub Pages is served from the `gh-pages` branch (the `frontend/` files at the branch root, plus `.nojekyll`): https://drmessi007-ui.github.io/starkhire/. The CORS origin for the agent is `https://drmessi007-ui.github.io` (the origin has no path). An optional Actions workflow remains at [`deploy/github-pages.yml`](deploy/github-pages.yml) and is not required for this setup.
 
 ## License
 
@@ -88,4 +88,4 @@ MIT License, Copyright (c) 2026 Jose Ignacio Garcia Ojeda (same terms as OrbitHi
 
 ## Español (resumen)
 
-StarkHire es un prototipo nuevo en Starknet Sepolia, derivado del propio OrbitHire del autor (ese proyecto NEAR sigue aparte y no se modifica). El contrato Cairo y las pruebas del agente pasan en local; el contrato **no** está desplegado y el agente **no** está instalado en el servidor. El subdominio previsto `starkhire.deosorno.cl` debe crearse en DNS antes de exponer el API. No uses cuentas ni claves de mainnet. Quien opera el proyecto debe crear las wallets de Sepolia (dueño/desplegador y agente), fondearlas, desplegar el contrato, publicar su dirección, y aprobar cualquier instalación en el servidor. Instrucciones: `deploy/INSTALL.md`.
+StarkHire es un prototipo nuevo en Starknet Sepolia, derivado del propio OrbitHire del autor (ese proyecto NEAR sigue aparte y no se modifica). El contrato Cairo y las pruebas del agente pasan en local; el contrato **no** está desplegado. El frontend estático está en https://drmessi007-ui.github.io/starkhire/. El agente está instalado en el servidor, con la unidad habilitada pero **detenida** hasta que existan la dirección del contrato y la clave del agente. El subdominio `starkhire.deosorno.cl` debe crearse en DNS antes de añadir el vhost y el certificado. No uses cuentas ni claves de mainnet. Instrucciones: `deploy/INSTALL.md`.

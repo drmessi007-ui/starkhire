@@ -36,13 +36,15 @@ ss -H -ltn 'sport = :8797'
 
 Choose a free TCP port if `8797` is already taken. Do not stop other listeners to free a port.
 
-## 2. Install a Node 22+ runtime without touching OrbitHire
+## 2. Node 22 runtime (do not modify existing trees)
 
-Option A — reuse the existing isolated binary **read-only** by pointing `ExecStart` at it, without changing files under `/opt/orbithire-runtime`.
+On this host, Node.js `v22.23.5` already exists at `/opt/node22/bin/node`. The unit points `ExecStart` at that binary and does not modify `/opt/node22` or `/opt/orbithire-runtime`.
 
-Option B — install a separate runtime under `/opt/starkhire-runtime` (official Node tarball, checksum-verified). Do not create `/usr/bin` symlinks or change the system `PATH`.
+When running `npm`, put `/opt/node22/bin` first on `PATH` and invoke npm with that Node, because `/opt/node22/bin/npm` uses `#!/usr/bin/env node` and would otherwise pick the system Node `v20`:
 
-Then edit `deploy/starkhire-agent.service` so `PATH` and `ExecStart` match the binary you chose.
+```bash
+sudo -u starkhire env PATH=/opt/node22/bin:/usr/bin:/bin   /opt/node22/bin/node /opt/node22/bin/npm ci --omit=dev
+```
 
 ## 3. Create an isolated service account and directories
 
@@ -78,31 +80,56 @@ sudo cp deploy/starkhire-agent.service /etc/systemd/system/starkhire-agent.servi
 # Adjust ExecStart / PATH if needed, then:
 sudo systemctl daemon-reload
 sudo systemctl enable starkhire-agent.service
-sudo systemctl start starkhire-agent.service
+# Do not start until STARKHIRE_CONTRACT_ADDRESS, AGENT_ACCOUNT_ADDRESS,
+# and AGENT_PRIVATE_KEY are set: the process exits on boot without them.
+# sudo systemctl start starkhire-agent.service
 sudo systemctl status starkhire-agent.service --no-pager
 curl -sS http://127.0.0.1:8797/health
 ```
 
-Expected health JSON once the contract address is set and Sepolia RPC is reachable: `{"ok":true,"network":"sepolia","service":"starkhire-agent"}`.
+Expected health JSON once the contract and agent key are configured, the unit is started, and Sepolia RPC is reachable: `{"ok":true,"network":"sepolia","service":"starkhire-agent"}`.
 
 If start fails, inspect logs with `journalctl -u starkhire-agent.service -n 100 --no-pager`. Do not restart or edit `orbithire-agent.service` while debugging.
 
-## 6. Nginx site for starkhire.deosorno.cl
+## 6. Hestia domain for starkhire.deosorno.cl (do not run until DNS exists)
 
-Only after DNS resolves to this host:
+This host does not use `/etc/nginx/sites-enabled`. Vhosts are Hestia symlinks under `/etc/nginx/conf.d/domains/`. `agent.deosorno.cl` belongs to Hestia user `dns`, IP `10.0.0.183` (NAT `136.248.242.17`), proxy template `orbithire` (that template proxies to `http://127.0.0.1:18787` — never assign it to StarkHire).
+
+Templates for StarkHire (port `8797`) are in [`hestia/starkhire.tpl`](hestia/starkhire.tpl) and [`hestia/starkhire.stpl`](hestia/starkhire.stpl). They were **not** copied to the server in the 2026-11-22 install window, and no domain or certificate was created, because `starkhire.deosorno.cl` had no public DNS record.
+
+When the owner has created the DNS A (or CNAME) record pointing at `136.248.242.17` and has approved the web/TLS change, run only these commands (new files and a new domain; do not edit `orbithire.tpl`, `orbithire.stpl`, or the `agent.deosorno.cl` vhost):
 
 ```bash
-# Copy deploy/nginx-starkhire.deosorno.cl.conf into the host's usual
-# sites-available / sites-enabled layout (do not overwrite other sites).
-sudo nginx -t
-# Configure TLS with the host's existing certificate process, then:
-# sudo systemctl reload nginx
+# 1. Install the new templates as new files only.
+sudo cp deploy/hestia/starkhire.tpl /usr/local/hestia/data/templates/web/nginx/starkhire.tpl
+sudo cp deploy/hestia/starkhire.stpl /usr/local/hestia/data/templates/web/nginx/starkhire.stpl
+sudo chown root:root /usr/local/hestia/data/templates/web/nginx/starkhire.tpl \
+  /usr/local/hestia/data/templates/web/nginx/starkhire.stpl
+sudo chmod 644 /usr/local/hestia/data/templates/web/nginx/starkhire.tpl \
+  /usr/local/hestia/data/templates/web/nginx/starkhire.stpl
+
+# 2. Add the domain under the same Hestia user as agent.deosorno.cl.
+sudo /usr/local/hestia/bin/v-add-web-domain dns starkhire.deosorno.cl 10.0.0.183
+
+# 3. Attach the StarkHire proxy template (127.0.0.1:8797).
+#    If PROXY is not enabled yet on the new domain, use v-add-web-domain-proxy
+#    with the same arguments instead.
+sudo /usr/local/hestia/bin/v-change-web-domain-proxy-tpl dns starkhire.deosorno.cl starkhire
+
+# 4. Let's Encrypt (requires the DNS record to already resolve here).
+sudo /usr/local/hestia/bin/v-add-letsencrypt-domain dns starkhire.deosorno.cl
+
+# 5. Verify the new site, and confirm OrbitHire is unchanged.
+sudo /usr/local/hestia/bin/v-list-web-domain dns starkhire.deosorno.cl
 curl -sS https://starkhire.deosorno.cl/health
+curl -sS https://agent.deosorno.cl/health
 ```
+
+The generic file `nginx-starkhire.deosorno.cl.conf` is only a starting example; it is not how this host's Nginx is laid out.
 
 ## 7. Frontend
 
-Set `CONTRACT_ADDRESS` in `frontend/app.js` to the deployed Sepolia address, commit, and publish the `frontend/` directory (GitHub Pages from the workflow in `.github/workflows/pages.yml`, or another static host). The agent CORS origin must match that host origin.
+Set `CONTRACT_ADDRESS` in `frontend/app.js` to the deployed Sepolia address, commit, and update both `main` and the `gh-pages` branch (the live site is https://drmessi007-ui.github.io/starkhire/). The agent `FRONTEND_ORIGIN` is `https://drmessi007-ui.github.io` (the origin has no path). The optional Actions workflow remains at `deploy/github-pages.yml`.
 
 
 ## Host notes from the 2026-11-22 read-only survey
@@ -115,3 +142,14 @@ A non-mutating login to the machine that serves `agent.deosorno.cl` (`ns1.deosor
 - Isolated Node.js `v22.23.5` binaries already exist at `/opt/orbithire-runtime/node-v22.23.5/bin/node` and `/opt/node22/bin/node`. Either may be referenced read-only from a new unit; do not replace those trees. System `/usr/bin/node` was `v20.20.2`.
 - The host had about 1 GiB of RAM with swap in use, plus mail, DNS, Hestia, Apache, Nginx, MariaDB, and the OrbitHire agent. A second Node process should only be installed after the owner accepts that memory risk.
 - No `/opt/starkhire-agent`, `/etc/starkhire-agent`, or `starkhire-agent.service` existed at survey time.
+
+## Status after the 2026-11-22 approved install window
+
+The owner approved installing the agent and enabling GitHub Pages on 22 Nov 2026. The following was done on `ns1.deosorno.cl`. No OrbitHire path, unit, vhost, or env file was changed. No Hestia domain or TLS certificate was created.
+
+- App files: `/opt/starkhire-agent/app` (only `package.json`, `package-lock.json`, `src/`, and `node_modules` from `npm ci --omit=dev`). Data dir: `/opt/starkhire-agent/app/data`.
+- System user `starkhire` (`nologin`).
+- Env file: `/etc/starkhire-agent/agent.env` (owner `root:starkhire`, mode `0640`), bound to `127.0.0.1:8797`, `FRONTEND_ORIGIN=https://drmessi007-ui.github.io`, `STARKNET_NETWORK=sepolia`. Contract address and agent key fields were left empty.
+- Unit: `/etc/systemd/system/starkhire-agent.service`, enabled, **left stopped** because the process cannot boot without a contract address and agent key. Limits: `MemoryMax=192M`, `MemoryHigh=160M`, `CPUQuota=50%`, `Nice=10`, `NODE_OPTIONS=--max-old-space-size=128`, `RestartSec=30`, `StartLimitBurst=3` / `StartLimitIntervalSec=300`. `ExecStart=/opt/node22/bin/node`.
+- After `daemon-reload` and `enable`, `orbithire-agent.service` remained active with the same main PID as before the install, and `https://agent.deosorno.cl/health` still returned `{"ok":true,"network":"testnet"}`.
+
